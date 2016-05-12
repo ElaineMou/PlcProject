@@ -1,0 +1,12 @@
+[package]
+name = "rust_2048"
+version = "0.1.0"
+authors = ["ElaineMou <elaine-mou@uiowa.edu>"]
+
+[[bin]]
+name = "main"
+doc = false
+
+[dependencies]
+ansi_term = "*"
+rand = "*"
