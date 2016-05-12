@@ -177,7 +177,7 @@ fn get_moves(grid_to_clone: & Grid) -> Vec<Move>{
 
 // Calculate sum of scores from heuristics used to evaluate the board
 fn evaluate_moves(grid: & Grid) -> f32{
-  2.*evaluate_empty_cells(grid) as f32 + evaluate_smoothness(grid) + evaluate_log_of_sum_squares(grid) as f32 + evaluate_near_death(grid) as f32 + 2.*evaluate_large_tile_location(grid) as f32 //+ evaluate_score(grid) as f32 
+  2.*evaluate_empty_cells(grid) as f32 + evaluate_smoothness(grid) + evaluate_log_of_sum_squares(grid) as f32 + evaluate_near_death(grid) as f32 + 2.*evaluate_large_tile_location(grid) as f32
 }
 
 ///Returns how many empty cells exist on the board
@@ -190,6 +190,9 @@ fn evaluate_empty_cells(grid: & Grid) -> usize{
 fn evaluate_large_tile_location(grid: & Grid) -> i8{
   let mut val:i8 = 0;
   let best = get_best_tile_val(grid);
+  let sec_best = get_sec_best_tile_val(grid, best);
+  let third_best = get_sec_best_tile_val(grid, sec_best);
+  let fourth_best = get_sec_best_tile_val(grid, third_best);
   for i in 0..4 {
     for j in 0..4 {
       match grid.grid()[i][j]{
@@ -199,19 +202,19 @@ fn evaluate_large_tile_location(grid: & Grid) -> i8{
                 val = val - 6;
             } // Or else not in corner
             else if best == cell.val() && (i==1 || i==2 || j==1 || j==2){
-                val = val - 4;
+                val = val - 5;
             } // Same for second-best possible
-            if best/2 == cell.val() && (i==1 || i==2) && (j==1 || j==2){
-                val = val - 4;
-            }
-            else if best/2 == cell.val() && (i==1 || i==2 || j==1 || j==2){
-                val = val - 2;
+            if sec_best == cell.val() && (i==1 || i==2) && (j==1 || j==2){
+                val = val - 5;
             } // And for third-best possible
-            if best/4 == cell.val() && (i==1 || i==2) && (j==1 || j==2){
+            if third_best == cell.val() && (i==1 || i==2) && (j==1 || j==2){
+                val = val - 4;
+            } // And for fourth-best
+            if fourth_best == cell.val() && (i==1 || i==2) && (j==1 || j==2) {
                 val = val - 3;
-            }
-            else if best/4 == cell.val() && (i==1 || i==2 || j==1 || j==2){
-                val = val - 1;
+            } 
+            else if best == cell.val() && (i==1 || i==2 || j==1 || j==2){
+                val = val - 2;
             }
 		}, 
 	    _ => {},
@@ -232,6 +235,7 @@ fn evaluate_near_death(grid: & Grid) -> i8{
         -8
     } else {
         0
+
     }
 }
 
@@ -331,4 +335,22 @@ fn get_best_tile_val(grid: & Grid) -> usize{
         }
     }
     max
+}
+
+/// Finds second highest value of any tile on the board
+fn get_sec_best_tile_val(grid: & Grid, max: usize) -> usize{
+    let mut second_max = 0;
+    for i in 0..4 {
+        for j in 0..4 {
+          match grid.grid()[i][j]{
+            Some(ref cell) => {
+                if cell.val()>second_max && cell.val()<max {
+                    second_max = cell.val();
+                }
+		    }, 
+	        _ => {},
+          }
+        }
+    }
+    second_max
 }
